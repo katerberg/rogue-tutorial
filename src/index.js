@@ -36,10 +36,14 @@ class Game {
     digger.create(digCallback.bind(this));
   }
 
+  popOpenFreeSpace() {
+    const index = Math.floor(RNG.getUniform() * this.freeCells.length);
+    return this.freeCells.splice(index, 1)[0]
+  }
+
   drawMap() {
     Array(10).fill().forEach(() => {
-      const index = Math.floor(RNG.getUniform() * this.freeCells.length);
-      this.map[this.freeCells.splice(index, 1)[0]] = 'x';
+      this.map[this.popOpenFreeSpace()] = 'x';
     });
     Object.keys(this.map).forEach(key => {
       const parts = key.split(',');
@@ -47,10 +51,18 @@ class Game {
       const y = parseInt(parts[1], 10);
       this.display.draw(x, y, this.map[key]);
     });
+    const player = this.createPlayer();
+  }
+
+  createPlayer() {
+    const key = this.popOpenFreeSpace();
+    var parts = key.split(",");
+    var x = parseInt(parts[0]);
+    var y = parseInt(parts[1]);
+    this.player = new Player(x, y);
   }
 }
 
 const game = new Game();
 game.generateMap();
 game.drawMap();
-const player = new Player();
