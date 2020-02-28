@@ -1,20 +1,56 @@
-import {Display} from 'rot-js';
+import {Display, Map, RNG} from 'rot-js';
 
-const o = {
-  width: 11,
-  height: 5,
-};
-const d = new Display(o);
-document.body.appendChild(d.getContainer());
+class Player {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.draw();
+  }
 
-for (let i = 0; i < o.width; i += 1) {
-  for (let j = 0; j < o.height; j += 1) {
-    if (!i || !j || i + 1 === o.width || j + 1 === o.height) {
-      d.draw(i, j, '#', 'gray');
-    } else {
-      d.draw(i, j, '.', '#666');
-
-    }
+  draw() {
+    game.display.draw(this.x, this.y, '@', '#ff0');
   }
 }
-d.draw(Math.floor(o.width / 2), Math.floor(o.height / 2), '@', 'goldenrod');
+
+class Game {
+
+  constructor() {
+    this.display = new Display({width: 80, height: 25});
+    this.map = {};
+    this.freeCells = [];
+    document.body.appendChild(this.display.getContainer());
+  }
+
+  generateMap() {
+    const digger = new Map.Digger(80, 25, {dugPercentage: 0.9});
+
+    const digCallback = (x, y, value) => {
+      if (value) {
+        return;
+      } /* Do not store walls */
+
+      const key = `${x},${y}`;
+      this.freeCells.push(key);
+      this.map[key] = value ? '-' : '.';
+    };
+    digger.create(digCallback.bind(this));
+  }
+
+  drawMap() {
+    Array(10).fill().forEach(() => {
+      const index = Math.floor(RNG.getUniform() * this.freeCells.length);
+      this.map[this.freeCells.splice(index, 1)[0]] = 'x';
+    });
+    Object.keys(this.map).forEach(key => {
+      const parts = key.split(',');
+      const x = parseInt(parts[0], 10);
+      const y = parseInt(parts[1], 10);
+      this.display.draw(x, y, this.map[key]);
+    });
+  }
+}
+
+const game = new Game();
+game.generateMap();
+game.drawMap();
+const player = new Player();
