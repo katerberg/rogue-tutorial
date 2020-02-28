@@ -1,4 +1,4 @@
-import {Display, Map, RNG} from 'rot-js';
+import {Display, Map, Engine, RNG, Scheduler} from 'rot-js';
 
 class Player {
   constructor(x, y) {
@@ -17,6 +17,7 @@ class Game {
   constructor() {
     this.display = new Display({width: 80, height: 25});
     this.map = {};
+    this.engine = null;
     this.freeCells = [];
     document.body.appendChild(this.display.getContainer());
   }
@@ -61,8 +62,16 @@ class Game {
     var y = parseInt(parts[1]);
     this.player = new Player(x, y);
   }
+
+  init() {
+    const scheduler = new Scheduler.Simple();
+    this.engine = new Engine(scheduler);
+    scheduler.add(this.player, true);
+    this.engine.start();
+  }
 }
 
 const game = new Game();
 game.generateMap();
+game.init();
 game.drawMap();
