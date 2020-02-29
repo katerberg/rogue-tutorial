@@ -1,4 +1,5 @@
-import {Display, Map, Engine, RNG, Scheduler} from 'rot-js';
+import "regenerator-runtime/runtime";
+import {Display, Map, RNG, Scheduler} from 'rot-js';
 
 class Player {
   constructor(x, y) {
@@ -19,6 +20,7 @@ class Game {
     this.map = {};
     this.engine = null;
     this.freeCells = [];
+    this.scheduler = new Scheduler.Simple();
     document.body.appendChild(this.display.getContainer());
   }
 
@@ -39,7 +41,7 @@ class Game {
 
   popOpenFreeSpace() {
     const index = Math.floor(RNG.getUniform() * this.freeCells.length);
-    return this.freeCells.splice(index, 1)[0]
+    return this.freeCells.splice(index, 1)[0];
   }
 
   drawMap() {
@@ -57,21 +59,26 @@ class Game {
 
   createPlayer() {
     const key = this.popOpenFreeSpace();
-    var parts = key.split(",");
-    var x = parseInt(parts[0]);
-    var y = parseInt(parts[1]);
-    this.player = new Player(x, y);
+    const parts = key.split(',');
+    const x = parseInt(parts[0], 10);
+    const y = parseInt(parts[1], 10);
+    return new Player(x, y);
   }
 
-  init() {
-    const scheduler = new Scheduler.Simple();
-    this.engine = new Engine(scheduler);
-    scheduler.add(this.player, true);
-    this.engine.start();
+  async init() {
+    this.player = this.createPlayer();
+    this.scheduler.add(this.player, true);
+    while (1) {
+      const actor = this.scheduler.next();
+      if (!actor) {
+        break;
+      }
+      await actor.act();
+    }
   }
 }
 
 const game = new Game();
 game.generateMap();
-game.init();
 game.drawMap();
+Game.init();
